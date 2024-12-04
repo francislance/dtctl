@@ -7,11 +7,12 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    name: Build dtctl for ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [windows, linux, macos]
-        go-version: [1.16]
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        go-version: ['1.16']
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -24,23 +25,21 @@ jobs:
       - name: Build
         run: |
           mkdir -p builds
-          GOOS="${{ matrix.os }}"
-          GOARCH="amd64"
           EXT=""
-          if [ "$GOOS" == "windows" ]; then
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
             EXT=".exe"
           fi
-          env GOOS=$GOOS GOARCH=$GOARCH go build -o dtctl${EXT}
-          zip -j builds/dtctl-${GOOS}-${GOARCH}.zip dtctl${EXT}
+          go build -o dtctl${EXT}
+          zip -j builds/dtctl-${{ matrix.os }}-${{ matrix.go-version }}.zip dtctl${EXT}
 
       - name: Upload artifact
         uses: actions/upload-artifact@v3
         with:
           name: dtctl-${{ matrix.os }}-${{ matrix.go-version }}
           path: builds/dtctl-*.zip
-          retention-days: 1
 
   release:
+    name: Create GitHub Release
     needs: build
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/')
@@ -52,21 +51,9 @@ jobs:
 
       - name: Create Release
         id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: ncipollo/release-action@v1
         with:
-          tag_name: ${{ github.ref_name }}
-          release_name: Release ${{ github.ref_name }}
-          draft: false
-          prerelease: false
-
-      - name: Upload Release Assets
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: builds/dtctl-*.zip
-          asset_name: dtctl-${{ github.ref_name }}-${{ runner.os }}.zip
-          asset_content_type: application/zip
+          tag: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
+          artifacts: "builds/*"
+          token: ${{ secrets.GITHUB_TOKEN }}
