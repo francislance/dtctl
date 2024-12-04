@@ -11,4 +11,7 @@ var getCmd = &cobra.Command{
 
 func init() {
     rootCmd.AddCommand(getCmd)
+    getCmd.AddCommand(getProjectsCmd)
+    getCmd.AddCommand(getComponentsCmd)
+    getCmd.AddCommand(getPoliciesCmd)
 }
