@@ -1,0 +1,72 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [windows, linux, macos]
+        go-version: [1.16]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: ${{ matrix.go-version }}
+
+      - name: Build
+        run: |
+          mkdir -p builds
+          GOOS="${{ matrix.os }}"
+          GOARCH="amd64"
+          EXT=""
+          if [ "$GOOS" == "windows" ]; then
+            EXT=".exe"
+          fi
+          env GOOS=$GOOS GOARCH=$GOARCH go build -o dtctl${EXT}
+          zip -j builds/dtctl-${GOOS}-${GOARCH}.zip dtctl${EXT}
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: dtctl-${{ matrix.os }}-${{ matrix.go-version }}
+          path: builds/dtctl-*.zip
+          retention-days: 1
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+        with:
+          path: builds
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref_name }}
+          release_name: Release ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+
+      - name: Upload Release Assets
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: builds/dtctl-*.zip
+          asset_name: dtctl-${{ github.ref_name }}-${{ runner.os }}.zip
+          asset_content_type: application/zip

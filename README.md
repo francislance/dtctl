@@ -25,60 +25,47 @@
 
 ## Installation
 
-### Download Pre-built Binaries
+You can download the latest version of `dtctl` from the [Releases](https://github.com/francislance/dtctl/releases) page.
 
-Pre-built binaries are available for Linux, macOS, and Windows on the [Releases](https://github.com/yourusername/dtctl/releases) page.
+### macOS and Linux
 
-1. **Download the binary** for your operating system from the [Releases](https://github.com/yourusername/dtctl/releases) page.
+1. **Download and unzip the binary**:
 
-2. **Make the binary executable** (if required):
+```bash
+# Replace X.X.X with the latest version
+wget https://github.com/francislance/dtctl/releases/download/vX.X.X/dtctl-vX.X.X-linux.zip
+unzip dtctl-vX.X.X-linux.zip
+```
 
-    ```bash
-    chmod +x dtctl
-    ```
+2. Make the binary executable:
 
-3. **Move the binary to a directory in your `PATH`**:
+```bash 
+chmod +x dtctl
+```
 
-    ```bash
-    sudo mv dtctl /usr/local/bin/
-    ```
+3. Move the binary to a directory in your PATH:
 
-   *Alternatively, you can move it to any directory that's included in your system's `PATH` environment variable.*
+```bash
+sudo mv dtctl /usr/local/bin/
+```
 
-### Build from Source
+4. Verify the installation:
 
-#### Prerequisites
+```bash
+dtctl --version
+```
 
-- [Go 1.20+](https://golang.org/dl/)
+### Windows
+1. Download and unzip the binary:
+   - Download dtctl-vX.X.X-windows.zip from the Releases page. 
+   - Unzip the file to extract dtctl.exe. 
+2. Add the binary to your PATH:
+   - Move dtctl.exe to a directory that's in your PATH, or add the directory containing dtctl.exe to your PATH environment variable.
+3. Verify the installation:
 
-#### Steps
-
-1. **Clone the repository**:
-
-    ```bash
-    git clone https://github.com/yourusername/dtctl.git
-    cd dtctl
-    ```
-
-2. **Build the binary**:
-
-    ```bash
-    go build -o dtctl
-    ```
-
-3. **Move the binary to a directory in your `PATH`**:
-
-    ```bash
-    sudo mv dtctl /usr/local/bin/
-    ```
-
-   *Ensure that `/usr/local/bin/` is in your `PATH`. You can verify this by running:*
-
-    ```bash
-    echo $PATH
-    ```
-
-   *If it's not included, you can add it by editing your shell profile (e.g., `.bashrc`, `.zshrc`).*
+```cmd
+dtctl --version
+```
 
 ---
 
