@@ -22,15 +22,30 @@ jobs:
         with:
           go-version: ${{ matrix.go-version }}
 
-      - name: Build
+      # Build on Windows
+      - name: Build on Windows
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          # Create builds directory
+          New-Item -ItemType Directory -Force -Path builds
+          # Set environment variables
+          $env:GOOS = 'windows'
+          $env:GOARCH = 'amd64'
+          # Build the executable
+          go build -o dtctl.exe
+          # Compress the executable
+          Compress-Archive -Path dtctl.exe -DestinationPath builds/dtctl-windows-${{ matrix.go-version }}.zip
+
+      # Build on macOS and Linux
+      - name: Build on macOS and Linux
+        if: runner.os != 'Windows'
         run: |
           mkdir -p builds
-          EXT=""
-          if [[ "$RUNNER_OS" == "Windows" ]]; then
-            EXT=".exe"
-          fi
-          go build -o dtctl${EXT}
-          zip -j builds/dtctl-${{ matrix.os }}-${{ matrix.go-version }}.zip dtctl${EXT}
+          GOOS=$(uname | tr '[:upper:]' '[:lower:]')
+          GOARCH=amd64
+          go build -o dtctl
+          zip -j builds/dtctl-${GOOS}-${{ matrix.go-version }}.zip dtctl
 
       - name: Upload artifact
         uses: actions/upload-artifact@v3
