@@ -34,6 +34,8 @@ type Component struct {
     Name   string `json:"name"`
     UUID   string `json:"uuid"`
     Sha256 string `json:"sha256"`
+    Sha1   string `json:"sha1"`
+    Md5    string `json:"md5"`
     // Add other fields if necessary
 }
 

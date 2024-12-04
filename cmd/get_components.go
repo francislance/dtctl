@@ -3,6 +3,7 @@ package cmd
 import (
     "fmt"
     "os"
+    "strings"
     "text/tabwriter"
 
     "github.com/spf13/cobra"
@@ -10,17 +11,20 @@ import (
     "dtctl/pkg/dependencytrack"
 )
 
-var componentTag string
+var (
+    componentTag string
+    showFields   string
+)
 
 func init() {
     getCmd.AddCommand(getComponentsCmd)
-    getComponentsCmd.Flags().StringVar(&componentTag, "tag", "", "Filter components by project tag (required)")
-    getComponentsCmd.MarkFlagRequired("tag")
+    getComponentsCmd.Flags().StringVar(&componentTag, "tag", "", "Filter components by project tag (optional)")
+    getComponentsCmd.Flags().StringVar(&showFields, "show-fields", "", "Comma-separated list of additional fields to display (available: projectname, projectuuid, sha256, sha1, md5)")
 }
 
 var getComponentsCmd = &cobra.Command{
     Use:   "components",
-    Short: "Get components based on project tag",
+    Short: "Get components",
     RunE:  getComponents,
 }
 
@@ -38,23 +42,34 @@ func getComponents(cmd *cobra.Command, args []string) error {
     }
     client := dependencytrack.NewClient(ctx.URL, ctx.Token)
 
-    projects, err := client.GetProjectsByTag(componentTag)
-    if err != nil {
-        return err
+    var projects []dependencytrack.Project
+
+    if componentTag != "" {
+        projects, err = client.GetProjectsByTag(componentTag)
+        if err != nil {
+            return err
+        }
+    } else {
+        projects, err = client.GetProjects()
+        if err != nil {
+            return err
+        }
     }
 
     if len(projects) == 0 {
-        fmt.Println("No projects found with the specified tag.")
+        fmt.Println("No projects found.")
         return nil
     }
 
     // Prepare data for display
     type ComponentInfo struct {
-        ProjectName    string
-        ProjectUUID    string
-        ComponentName  string
-        ComponentUUID  string
-        Sha256         string
+        ComponentName string
+        ComponentUUID string
+        ProjectName   string
+        ProjectUUID   string
+        Sha256        string
+        Sha1          string
+        Md5           string
     }
     var components []ComponentInfo
 
@@ -65,11 +80,13 @@ func getComponents(cmd *cobra.Command, args []string) error {
         }
         for _, component := range projectComponents {
             components = append(components, ComponentInfo{
-                ProjectName:   project.Name,
-                ProjectUUID:   project.UUID,
                 ComponentName: component.Name,
                 ComponentUUID: component.UUID,
+                ProjectName:   project.Name,
+                ProjectUUID:   project.UUID,
                 Sha256:        component.Sha256,
+                Sha1:          component.Sha1,
+                Md5:           component.Md5,
             })
         }
     }
@@ -79,14 +96,71 @@ func getComponents(cmd *cobra.Command, args []string) error {
         return nil
     }
 
-    // Display data in table format
-    w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
-    fmt.Fprintln(w, "PROJECT NAME\tPROJECT UUID\tCOMPONENT NAME\tCOMPONENT UUID\tSHA256")
-    fmt.Fprintln(w, "------------\t------------\t--------------\t--------------\t------")
-    for _, comp := range components {
-        fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%s\n", comp.ProjectName, comp.ProjectUUID, comp.ComponentName, comp.ComponentUUID, comp.Sha256)
+    // Default headers and extractors
+    headers := []string{"COMPONENT NAME", "COMPONENT UUID"}
+    extractors := []func(ComponentInfo) string{
+        func(ci ComponentInfo) string { return ci.ComponentName },
+        func(ci ComponentInfo) string { return ci.ComponentUUID },
     }
+
+    // Parse --show-fields flag
+    if showFields != "" {
+        fields := parseFields(showFields)
+        for _, field := range fields {
+            switch field {
+            case "projectname":
+                headers = append(headers, "PROJECT NAME")
+                extractors = append(extractors, func(ci ComponentInfo) string { return ci.ProjectName })
+            case "projectuuid":
+                headers = append(headers, "PROJECT UUID")
+                extractors = append(extractors, func(ci ComponentInfo) string { return ci.ProjectUUID })
+            case "sha256":
+                headers = append(headers, "SHA256")
+                extractors = append(extractors, func(ci ComponentInfo) string { return ci.Sha256 })
+            case "sha1":
+                headers = append(headers, "SHA1")
+                extractors = append(extractors, func(ci ComponentInfo) string { return ci.Sha1 })
+            case "md5":
+                headers = append(headers, "MD5")
+                extractors = append(extractors, func(ci ComponentInfo) string { return ci.Md5 })
+            default:
+                return fmt.Errorf("invalid field: %s", field)
+            }
+        }
+    }
+
+    // Prepare the table
+    w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
+
+    // Print headers
+    fmt.Fprintln(w, strings.Join(headers, "\t"))
+
+    // Print separator
+    separator := make([]string, len(headers))
+    for i := range separator {
+        separator[i] = strings.Repeat("-", len(headers[i]))
+    }
+    fmt.Fprintln(w, strings.Join(separator, "\t"))
+
+    // Print rows
+    for _, comp := range components {
+        row := make([]string, len(extractors))
+        for i, extract := range extractors {
+            row[i] = extract(comp)
+        }
+        fmt.Fprintln(w, strings.Join(row, "\t"))
+    }
+
     w.Flush()
 
     return nil
+}
+
+// Helper function to parse and normalize the show-fields input
+func parseFields(input string) []string {
+    fields := strings.Split(input, ",")
+    for i, field := range fields {
+        fields[i] = strings.TrimSpace(strings.ToLower(field))
+    }
+    return fields
 }
