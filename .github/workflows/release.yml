@@ -29,13 +29,10 @@ jobs:
         run: |
           # Create builds directory
           New-Item -ItemType Directory -Force -Path builds
-          # Set environment variables
-          $env:GOOS = 'windows'
-          $env:GOARCH = 'amd64'
           # Build the executable
           go build -o dtctl.exe
           # Compress the executable
-          Compress-Archive -Path dtctl.exe -DestinationPath builds/dtctl-windows-${{ matrix.go-version }}.zip
+          Compress-Archive -Path dtctl.exe -DestinationPath builds/dtctl-windows-amd64.zip
 
       # Build on macOS and Linux
       - name: Build on macOS and Linux
@@ -43,15 +40,17 @@ jobs:
         run: |
           mkdir -p builds
           GOOS=$(uname | tr '[:upper:]' '[:lower:]')
-          GOARCH=amd64
+          if [ "$GOOS" = "darwin" ]; then
+            GOOS="macos"
+          fi
           go build -o dtctl
-          zip -j builds/dtctl-${GOOS}-${{ matrix.go-version }}.zip dtctl
+          zip -j builds/dtctl-${GOOS}-amd64.zip dtctl
 
-      - name: Upload artifact
+      - name: Upload artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: dtctl-${{ matrix.os }}-${{ matrix.go-version }}
-          path: builds/dtctl-*.zip
+          name: dtctl-binaries
+          path: builds/*.zip
 
   release:
     name: Create GitHub Release
@@ -62,13 +61,17 @@ jobs:
       - name: Download artifacts
         uses: actions/download-artifact@v3
         with:
+          name: dtctl-binaries
           path: builds
 
       - name: Create Release
-        id: create_release
-        uses: ncipollo/release-action@v1
+        uses: softprops/action-gh-release@v1
         with:
-          tag: ${{ github.ref_name }}
+          files: builds/*.zip
+          tag_name: ${{ github.ref_name }}
           name: Release ${{ github.ref_name }}
-          artifacts: "builds/*"
-          token: ${{ secrets.RELEASE_TOKEN }}
+          draft: false
+          prerelease: false
+          make_latest: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}

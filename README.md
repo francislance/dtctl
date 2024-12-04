@@ -25,16 +25,18 @@
 
 ## Installation
 
-You can download the latest version of `dtctl` from the [Releases](https://github.com/francislance/dtctl/releases) page.
+You can download the latest version of `dtctl` from the [Releases](https://github.com/francislance/dtctl/releases/latest) page.
 
 ### macOS and Linux
 
 1. **Download and unzip the binary**:
 
 ```bash
-# Replace X.X.X with the latest version
-wget https://github.com/francislance/dtctl/releases/download/vX.X.X/dtctl-vX.X.X-linux.zip
-unzip dtctl-vX.X.X-linux.zip
+# For macOS:
+curl -L -o dtctl.zip https://github.com/francislance/dtctl/releases/latest/download/dtctl-macos-amd64.zip
+# For Linux:
+curl -L -o dtctl.zip https://github.com/francislance/dtctl/releases/latest/download/dtctl-linux-amd64.zip
+unzip dtctl.zip
 ```
 
 2. Make the binary executable:
