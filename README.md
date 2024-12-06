@@ -31,11 +31,16 @@ You can download the latest version of `dtctl` from the [Releases](https://githu
 
 1. **Download and unzip the binary**:
 
+#### For macOS:
 ```bash
-# For macOS:
 curl -L -o dtctl.zip https://github.com/francislance/dtctl/releases/latest/download/dtctl-macos-amd64.zip
+```
+#### For Linux:
+```bash
 # For Linux:
 curl -L -o dtctl.zip https://github.com/francislance/dtctl/releases/latest/download/dtctl-linux-amd64.zip
+```
+```bash
 unzip dtctl.zip
 ```
 
