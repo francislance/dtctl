@@ -31,36 +31,38 @@ You can download the latest version of `dtctl` from the [Releases](https://githu
 
 1. **Download and unzip the binary**:
 
-#### For macOS:
-```bash
-curl -L -o dtctl.zip https://github.com/francislance/dtctl/releases/latest/download/dtctl-macos-amd64.zip
-```
-#### For Linux:
-```bash
-# For Linux:
-curl -L -o dtctl.zip https://github.com/francislance/dtctl/releases/latest/download/dtctl-linux-amd64.zip
-```
-```bash
-unzip dtctl.zip
-```
+   #### For macOS:
+   ```bash
+   curl -L -o dtctl.zip https://github.com/francislance/dtctl/releases/latest/download/dtctl-macos-amd64.zip
+   ```
+   #### For Linux:
+   ```bash
+   curl -L -o dtctl.zip https://github.com/francislance/dtctl/releases/latest/download/dtctl-linux-amd64.zip
+   ```
 
-2. Make the binary executable:
+2. **Download and unzip the binary**:
 
-```bash 
-chmod +x dtctl
-```
+   ```bash
+   unzip dtctl.zip
+   ```
 
-3. Move the binary to a directory in your PATH:
+3. Make the binary executable:
 
-```bash
-sudo mv dtctl /usr/local/bin/
-```
+   ```bash 
+   chmod +x dtctl
+   ```
 
-4. Verify the installation:
+4. Move the binary to a directory in your PATH:
 
-```bash
-dtctl --version
-```
+   ```bash
+   sudo mv dtctl /usr/local/bin/
+   ```
+
+5. Verify the installation:
+
+   ```bash
+   dtctl --version
+   ```
 
 ### Windows
 1. Download and unzip the binary:
@@ -70,9 +72,9 @@ dtctl --version
    - Move dtctl.exe to a directory that's in your PATH, or add the directory containing dtctl.exe to your PATH environment variable.
 3. Verify the installation:
 
-```cmd
-dtctl --version
-```
+   ```cmd
+   dtctl --version
+   ```
 
 ---
 
@@ -88,7 +90,6 @@ To add a new context, use the `add-context` command with a unique name, the Depe
 
 ```bash
 dtctl config add-context mycontext --url="https://dependency-track.example.com" --token="your-api-key"
-dtctl config add-context production --url="https://dt.example.com" --token="abcd1234efgh5678ijkl"
 ```
 
 ### Switching Contexts
@@ -103,15 +104,36 @@ dtctl config use-context production
 
 Once you have configured your contexts, you can use `dtctl` to interact with your Dependency-Track server. Below are the primary commands and their usage.
 
-### Fetching Projects
+### Projects
 
 Retrieve and display all projects from the current context's Dependency-Track server.
 
 ```bash
 dtctl get projects
-dtctl get policies
-dtctl get components
 ```
 
+```bash
+dtctl get projects --tag="springboot"
+```
+
+### Policies
+```bash
+dtctl get policies
+```
+
+### Components
+```bash
+# get all components
+dtctl get components
+```
+```bash
+# get all components under a project with specific tag
+dtctl get components --tag="container"
+```
+```bash
+# get all components under a project with fields
+# (available: projectname, projectuuid, sha256, sha1, md5)
+dtctl get components --show-fields="projectname,projectuuid,sha256,sha1,md5" --tag="container"
+```
 ---
 
