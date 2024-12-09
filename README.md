@@ -135,5 +135,11 @@ dtctl get components --tag="container"
 # (available: projectname, projectuuid, sha256, sha1, md5)
 dtctl get components --show-fields="projectname,projectuuid,sha256,sha1,md5" --tag="container"
 ```
----
 
+### Hash Policy Condition
+
+Sample updating of hash policy condition:
+```bash
+dtctl set hashpolicycondition --uuid="1cf6c518-149a-43a6-991d-276d163c5852" --operator="IS_NOT" --subject="COMPONENT_HASH" --algorithm="SHA-256" --algorithm-value="928b2691494882b361bbe4f70fcf3fa9fbcb5a2bbe88f2b42f7e93f2c8cc726b"
+```
+---

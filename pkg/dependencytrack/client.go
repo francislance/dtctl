@@ -56,6 +56,14 @@ type Policy struct {
     // Add other fields if necessary
 }
 
+// PolicyCondition represents a policy condition in Dependency-Track.
+type PolicyCondition struct {
+    Operator string `json:"operator"`
+    Subject  string `json:"subject"`
+    Value    string `json:"value"`
+    UUID     string `json:"uuid"`
+}
+
 // GetProjects fetches all projects from the Dependency-Track server.
 func (c *Client) GetProjects() ([]Project, error) {
     req, err := http.NewRequest("GET", fmt.Sprintf("%s/api/v1/project", c.BaseURL), nil)
@@ -224,4 +232,40 @@ func (c *Client) GetPolicies() ([]Policy, error) {
         return nil, err
     }
     return policies, nil
+}
+
+// UpdatePolicyCondition updates a policy's condition by sending a POST request.
+func (c *Client) UpdatePolicyCondition(condition PolicyCondition) error {
+    jsonPayload, err := json.Marshal(condition)
+    if err != nil {
+        return fmt.Errorf("failed to marshal policy condition: %v", err)
+    }
+
+    endpoint := fmt.Sprintf("%s/api/v1/policy/condition", c.BaseURL)
+    req, err := http.NewRequest("POST", endpoint, bytes.NewBuffer(jsonPayload))
+    if err != nil {
+        return fmt.Errorf("failed to create POST request: %v", err)
+    }
+
+    req.Header.Set("X-Api-Key", c.APIToken)
+    req.Header.Set("Content-Type", "application/json")
+
+    resp, err := c.HTTPClient.Do(req)
+    if err != nil {
+        return fmt.Errorf("failed to perform POST request: %v", err)
+    }
+    defer resp.Body.Close()
+
+    if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
+        var errorResponse map[string]interface{}
+        if decodeErr := json.NewDecoder(resp.Body).Decode(&errorResponse); decodeErr != nil {
+            return fmt.Errorf("failed to update policy condition: %s", resp.Status)
+        }
+        if msg, exists := errorResponse["message"]; exists {
+            return fmt.Errorf("failed to update policy condition: %s, message: %v", resp.Status, msg)
+        }
+        return fmt.Errorf("failed to update policy condition: %s, response: %v", resp.Status, errorResponse)
+    }
+
+    return nil
 }
