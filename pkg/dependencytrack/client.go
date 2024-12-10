@@ -269,3 +269,34 @@ func (c *Client) UpdatePolicyCondition(condition PolicyCondition) error {
 
     return nil
 }
+
+// GetPolicyByUUID fetches a single policy by its UUID.
+func (c *Client) GetPolicyByUUID(policyUUID string) (map[string]interface{}, error) {
+    endpoint := fmt.Sprintf("%s/api/v1/policy/%s", c.BaseURL, url.PathEscape(policyUUID))
+    req, err := http.NewRequest("GET", endpoint, nil)
+    if err != nil {
+        return nil, fmt.Errorf("failed to create GET request: %v", err)
+    }
+
+    req.Header.Set("X-Api-Key", c.APIToken)
+    resp, err := c.HTTPClient.Do(req)
+    if err != nil {
+        return nil, fmt.Errorf("failed to perform GET request: %v", err)
+    }
+    defer resp.Body.Close()
+
+    if resp.StatusCode != http.StatusOK {
+        var errorResponse map[string]interface{}
+        if decodeErr := json.NewDecoder(resp.Body).Decode(&errorResponse); decodeErr != nil {
+            return nil, fmt.Errorf("failed to get policy: %s", resp.Status)
+        }
+        return nil, fmt.Errorf("failed to get policy: %s, response: %v", resp.Status, errorResponse)
+    }
+
+    var policy map[string]interface{}
+    if err := json.NewDecoder(resp.Body).Decode(&policy); err != nil {
+        return nil, fmt.Errorf("failed to decode policy response: %v", err)
+    }
+
+    return policy, nil
+}
