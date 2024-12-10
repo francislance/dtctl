@@ -7,6 +7,7 @@
 ## Table of Contents
 
 - [Features](#features)
+- [Use Cases](#usecases)
 - [Installation](#installation)
 - [Configuration](#configuration)
 - [Usage](#usage)
@@ -20,6 +21,18 @@
 - **Fetch Projects**: Retrieve and display all projects from the current Dependency-Track server.
 - **Cross-Platform Support**: Available for Linux, macOS, and Windows, ensuring broad usability.
 - **Extensible Architecture**: Designed to allow the addition of more commands and functionalities in the future.
+
+---
+
+## Use Cases
+
+**Use Case 1:** When a new build is produced, automatically update the policy’s hash to ensure the latest component is recognized before deployment. This is using the command `dtcl set hashpolicycondition` then at later stage after the deployment, update the new hash of the component using `dtctl set component --fields-sha256="value`
+
+**Use Case 2:** Rapid CLI Queries by Security Admins. A security admin wants quick checks without using the GUI especially if managing multiple Dependency Track. Using the command `dtctl config use-context production` security admins can switch to other instances quickly and execute further evaluations using available commands.
+
+**Use Case 3:** Quickly verify violations when there is a security incident. Command `dtctl eval policy --uuid="policy-uuid"` can be used and easily review the tabulated results.
+
+**Other Use Cases:** Any quick tasks to be done programmatically can later be added.
 
 ---
 
@@ -142,7 +155,6 @@ Sample updating of hash policy condition:
 ```bash
 dtctl set hashpolicycondition --uuid="1cf6c518-149a-43a6-991d-276d163c5852" --operator="IS_NOT" --subject="COMPONENT_HASH" --algorithm="SHA-256" --algorithm-value="928b2691494882b361bbe4f70fcf3fa9fbcb5a2bbe88f2b42f7e93f2c8cc726b"
 ```
----
 
 ### Evaluate a Policy
 
