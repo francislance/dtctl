@@ -2,7 +2,7 @@ package cmd
 
 // version holds the current version of the application.
 // Manually update this variable for each new release.
-var version = "v0.0.6"
+var version = "v0.1.0"
 
 // GetVersion returns the current version.
 func GetVersion() string {
