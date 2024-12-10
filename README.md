@@ -143,3 +143,10 @@ Sample updating of hash policy condition:
 dtctl set hashpolicycondition --uuid="1cf6c518-149a-43a6-991d-276d163c5852" --operator="IS_NOT" --subject="COMPONENT_HASH" --algorithm="SHA-256" --algorithm-value="928b2691494882b361bbe4f70fcf3fa9fbcb5a2bbe88f2b42f7e93f2c8cc726b"
 ```
 ---
+
+### Evaluate a Policy
+
+```bash
+# set the uuid of the policy
+dtctl eval policy --uuid="c4583613-1e43-4346-ac2d-db3d4e19491a"
+```
